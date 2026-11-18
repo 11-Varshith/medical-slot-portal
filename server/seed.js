@@ -1,0 +1,96 @@
+// Starter CONTENT for the patient home page (banners, offers, organ guides).
+// This runs only when those collections are empty. No users, doctors or appointments are ever seeded.
+import { Organ, Banner, Offer } from './models.js';
+
+const organs = [
+  { slug: 'heart', name: 'Heart', emoji: '🫀', color: '#e11d48', tagline: 'The pump that keeps blood moving through your whole body.',
+    overview: 'The heart is a muscular organ about the size of a fist. It has four chambers and four valves that keep blood flowing one way: oxygen-poor blood goes to the lungs, and oxygen-rich blood is pumped out to the body.',
+    location: 'In the centre of the chest, slightly to the left, behind the breastbone.',
+    specialist: 'Cardiologist', specialistKeyword: 'Cardio',
+    functions: ['Pumps oxygen-rich blood to every organ and tissue', 'Sends oxygen-poor blood to the lungs to pick up oxygen', 'Keeps blood pressure steady', 'Beats in a regular rhythm set by its own electrical system'],
+    conditions: ['High blood pressure', 'Coronary artery disease and heart attack', 'Heart failure', 'Arrhythmias (irregular heartbeat)'],
+    care: ['Be active for about 150 minutes a week', 'Eat plenty of vegetables, fruit, whole grains and less salt', 'Do not smoke and limit alcohol', 'Check blood pressure and cholesterol regularly'],
+    warningSigns: ['Chest pain, pressure or tightness', 'Shortness of breath at rest or with light activity', 'Fainting, or a racing or skipping heartbeat'],
+    facts: ['A resting adult heart beats roughly 60 to 100 times a minute.', 'The heart has its own electrical pacemaker called the sinus node.'] },
+  { slug: 'brain', name: 'Brain', emoji: '🧠', color: '#7c3aed', tagline: 'The control centre for thought, movement, memory and emotion.',
+    overview: 'The brain is the command centre of the nervous system. It processes information from your senses, controls movement, stores memories and shapes mood and personality. It is protected by the skull and three layers of tissue called meninges.',
+    location: 'Inside the skull, at the top of the spinal cord.',
+    specialist: 'Neurologist', specialistKeyword: 'Neuro',
+    functions: ['Thinking, learning and memory', 'Controlling voluntary movement and balance', 'Processing sight, sound, touch, taste and smell', 'Regulating breathing, heart rate and sleep'],
+    conditions: ['Migraine and chronic headache', 'Stroke', 'Epilepsy', "Dementia and Alzheimer's disease"],
+    care: ['Sleep 7 to 9 hours on a regular schedule', 'Exercise regularly, it improves blood flow to the brain', 'Wear a helmet for cycling and riding', 'Stay mentally and socially active'],
+    warningSigns: ['Sudden weakness or numbness on one side, or a drooping face', 'Sudden severe headache or trouble speaking', 'Seizures or unexplained confusion'],
+    facts: ['The adult brain weighs about 1.4 kg (3 lb).', 'It contains tens of billions of nerve cells called neurons.'] },
+  { slug: 'lungs', name: 'Lungs', emoji: '🫁', color: '#0284c7', tagline: 'Bring oxygen in and carry carbon dioxide out, every breath.',
+    overview: 'The lungs are a pair of spongy organs. Air travels down the windpipe into branching airways that end in millions of tiny air sacs called alveoli, where oxygen passes into the blood and carbon dioxide passes out.',
+    location: 'On either side of the chest, protected by the rib cage, above the diaphragm.',
+    specialist: 'Pulmonologist', specialistKeyword: 'Pulmo',
+    functions: ['Take oxygen from the air into the blood', 'Remove carbon dioxide from the body', 'Filter and warm the air you breathe', 'Help you speak by moving air over the voice box'],
+    conditions: ['Asthma', 'COPD (chronic obstructive pulmonary disease)', 'Pneumonia', 'Tuberculosis'],
+    care: ['Avoid smoking and second-hand smoke', 'Reduce exposure to dust, fumes and air pollution', 'Get recommended vaccines such as flu and pneumonia', 'Practise deep breathing and stay active'],
+    warningSigns: ['A cough lasting more than three weeks', 'Wheezing or breathlessness', 'Coughing up blood or chest pain when breathing'],
+    facts: ['The right lung has three lobes and the left has two, leaving room for the heart.', 'If the air sacs were laid flat they would cover a very large surface area, far more than the skin.'] },
+  { slug: 'kidneys', name: 'Kidneys', emoji: '🫘', color: '#c2410c', tagline: 'Natural filters that clean your blood and balance body fluids.',
+    overview: 'You have two bean-shaped kidneys, each about the size of a fist. They filter waste and extra water from the blood to make urine, and they help control blood pressure, red blood cell production and the balance of salts and minerals.',
+    location: 'Towards the back, just under the rib cage, one on each side of the spine.',
+    specialist: 'Nephrologist', specialistKeyword: 'Nephro',
+    functions: ['Filter waste products from the blood', 'Balance water, salts and minerals', 'Help regulate blood pressure', 'Make hormones that support red blood cells and strong bones'],
+    conditions: ['Kidney stones', 'Chronic kidney disease', 'Urinary tract infections', 'Diabetic kidney disease'],
+    care: ['Drink enough water through the day', 'Keep blood sugar and blood pressure under control', 'Limit salt and avoid overusing painkillers', 'Get a kidney check if you have diabetes or high blood pressure'],
+    warningSigns: ['Blood in the urine or very foamy urine', 'Swelling in the feet, ankles or around the eyes', 'Severe pain in the side or back, or burning when passing urine'],
+    facts: ['Healthy kidneys filter about half a cup of blood every minute.', 'Many people can live a healthy life with one kidney.'] },
+  { slug: 'eyes', name: 'Eyes', emoji: '👁️', color: '#0d9488', tagline: 'Turn light into signals your brain reads as sight.',
+    overview: 'Light enters through the clear cornea, passes the pupil and lens, and is focused onto the retina at the back of the eye. Light-sensing cells called rods and cones turn it into signals that travel along the optic nerve to the brain.',
+    location: 'In the bony eye sockets (orbits) of the skull.',
+    specialist: 'Ophthalmologist', specialistKeyword: 'Ophthal',
+    functions: ['Detect light, colour and movement', 'Focus on near and distant objects', 'Adjust to bright and dim light', 'Help judge depth and distance'],
+    conditions: ['Refractive errors (short-sightedness, long-sightedness)', 'Cataract', 'Glaucoma', 'Diabetic retinopathy'],
+    care: ['Take screen breaks: every 20 minutes look 20 feet away for 20 seconds', 'Wear sunglasses with UV protection', 'Get a dilated eye exam as advised, especially if you have diabetes', 'Never rub your eyes or share eye products'],
+    warningSigns: ['Sudden vision loss or flashes of light', 'Eye pain with redness or injury', 'Double vision or a curtain over part of your sight'],
+    facts: ['Rods work in dim light; cones give colour vision.', 'Glaucoma often has no early symptoms, so regular checks matter.'] },
+  { slug: 'bones', name: 'Bones', emoji: '🦴', color: '#a16207', tagline: 'The living frame that supports, protects and moves you.',
+    overview: 'The skeleton gives the body shape, protects organs, anchors muscles and stores calcium. Bone is living tissue that is constantly rebuilt. Marrow inside many bones makes blood cells.',
+    location: 'Throughout the body: an adult skeleton has 206 bones, joined at joints.',
+    specialist: 'Orthopedic Surgeon', specialistKeyword: 'Ortho',
+    functions: ['Support the body and allow movement', 'Protect the brain, heart, lungs and spinal cord', 'Store calcium and phosphorus', 'Produce blood cells in the bone marrow'],
+    conditions: ['Fractures', 'Osteoporosis', 'Arthritis', 'Back and joint pain'],
+    care: ['Get enough calcium and vitamin D', 'Do weight-bearing exercise such as walking', 'Avoid smoking and heavy drinking', 'Use safe lifting and good posture'],
+    warningSigns: ['Pain after a fall or injury, or a visibly bent limb', 'Joint swelling, redness or inability to bear weight', 'Back pain with numbness or weakness in the legs'],
+    facts: ['Babies are born with around 270 to 300 bones; many fuse as they grow.', 'The thigh bone (femur) is the longest and strongest bone.'] },
+  { slug: 'teeth', name: 'Teeth', emoji: '🦷', color: '#0891b2', tagline: 'Help you bite, chew and speak, and shape your smile.',
+    overview: 'Teeth are covered by enamel, the hardest substance in the body. Under it is dentin, and at the centre is the pulp with nerves and blood vessels. Adults normally have 32 permanent teeth, including wisdom teeth.',
+    location: 'In the upper and lower jaw, held in place by the gums.',
+    specialist: 'Dentist', specialistKeyword: 'Dent',
+    functions: ['Bite and chew food to start digestion', 'Help form clear speech', 'Support the shape of the face', 'Guide jaw alignment'],
+    conditions: ['Cavities (tooth decay)', 'Gum disease', 'Tooth sensitivity', 'Misaligned teeth'],
+    care: ['Brush twice a day with fluoride toothpaste', 'Clean between teeth daily', 'Limit sugary snacks and drinks', 'Visit a dentist for a check-up and cleaning regularly'],
+    warningSigns: ['Toothache lasting more than a day or two', 'Bleeding, swollen or receding gums', 'Swelling in the face or a loose adult tooth'],
+    facts: ['Enamel cannot regrow, so protecting it matters.', 'Children have 20 baby teeth that are later replaced.'] },
+  { slug: 'ears', name: 'Ears', emoji: '👂', color: '#db2777', tagline: 'Let you hear the world and keep your balance.',
+    overview: 'The ear has three parts. The outer ear collects sound, the middle ear contains three tiny bones that amplify vibrations, and the inner ear (cochlea) turns vibrations into nerve signals. The inner ear also helps control balance.',
+    location: 'On both sides of the head; the inner ear sits deep inside the skull.',
+    specialist: 'ENT Specialist', specialistKeyword: 'ENT',
+    functions: ['Detect sound and send it to the brain', 'Help maintain balance', 'Equalise air pressure through the Eustachian tube', 'Protect the canal with wax'],
+    conditions: ['Ear infections', 'Hearing loss', 'Tinnitus (ringing in the ears)', 'Vertigo and balance problems'],
+    care: ['Keep headphone volume low and take listening breaks', 'Do not insert cotton buds or sharp objects into the ear', 'Dry ears after swimming', 'Get hearing checked if you notice changes'],
+    warningSigns: ['Sudden hearing loss', 'Ear pain with discharge or fever', 'Persistent ringing or spinning dizziness'],
+    facts: ['The stapes in the middle ear is the smallest bone in the body.', 'Loud noise damage builds up slowly and is usually permanent.'] },
+].map((o, i) => ({ ...o, order: i }));
+
+const banners = [
+  { title: 'Your health, one slot away', subtitle: 'Find a specialist and book a confirmed appointment in under a minute.', emoji: '🩺', colors: ['#0e6b63', '#14b8a6'], cta: { label: 'Find a doctor', to: '/doctors' } },
+  { title: 'Know your body', subtitle: 'Tap any organ below to learn how it works and how to protect it.', emoji: '🫀', colors: ['#6d28d9', '#c084fc'], cta: { label: 'Learn about the heart', to: '/organs/heart' } },
+  { title: 'Records that follow you', subtitle: 'Prescriptions and lab progress from your doctor appear in one place.', emoji: '💊', colors: ['#c2410c', '#fb923c'], cta: { label: 'Open my records', to: '/records' } },
+].map((b, i) => ({ ...b, order: i }));
+
+const offers = [
+  { title: '20% off your first consultation', description: 'New to CareSlot? Book your first visit with any doctor.', emoji: '🎁', tag: 'New patients' },
+  { title: 'Free follow-up within 7 days', description: 'Book a follow-up after your visit at no extra consultation fee.', emoji: '🔁', tag: 'After your visit' },
+  { title: 'Family health package', description: 'Book 3 or more appointments for your family and save 10%.', emoji: '👨‍👩‍👧', tag: 'Families' },
+].map((o, i) => ({ ...o, order: i }));
+
+export async function seedContent() {
+  if (!(await Organ.countDocuments())) await Organ.insertMany(organs);
+  if (!(await Banner.countDocuments())) await Banner.insertMany(banners);
+  if (!(await Offer.countDocuments())) await Offer.insertMany(offers);
+}
