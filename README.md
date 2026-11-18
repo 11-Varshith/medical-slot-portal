@@ -18,6 +18,7 @@ Set `JWT_SECRET` in production. To reset data, delete `server/data.json`.
 The sign-in page includes a password recovery flow. Reset requests are stored in the JSON datastore as SHA-256 token hashes, expire after 30 minutes, and are invalidated after use.
 
 - In local development without email settings, the reset page displays a development-only link after a matching account is entered.
-- To send reset links by email, configure `SMTP_HOST`, `SMTP_PORT` (defaults to `587`), `SMTP_USER`, `SMTP_PASS`, and optionally `SMTP_SECURE=true` and `SMTP_FROM` (defaults to `SMTP_USER`).
-- In production, set `APP_URL` to the public frontend URL and configure SMTP including a sender address; otherwise password recovery reports that it is unavailable.
+- For Render, Resend's HTTPS API is recommended: set `RESEND_API_KEY`, `RESEND_FROM` (an address on a verified Resend domain), and `APP_URL` (the public frontend URL). This avoids SMTP connectivity restrictions. The API response or provider error is written to the backend logs without logging reset tokens.
+- Alternatively, configure `SMTP_HOST`, `SMTP_PORT` (defaults to `587`), `SMTP_USER`, `SMTP_PASS`, and optionally `SMTP_SECURE=true` and `SMTP_FROM`. SMTP is used only when `RESEND_API_KEY` is not set.
+- In production, set `APP_URL` to the public frontend URL and configure a provider and sender address; otherwise password recovery reports that it is unavailable.
 - Never expose development reset links in a production environment.

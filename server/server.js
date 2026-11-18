@@ -117,7 +117,35 @@ const resetMailer = process.env.SMTP_HOST
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
   })
   : null;
-const resetFrom = process.env.SMTP_FROM || process.env.SMTP_USER;
+const resendApiKey = process.env.RESEND_API_KEY;
+const resetFrom = process.env.RESEND_FROM || process.env.SMTP_FROM || process.env.SMTP_USER;
+const hasResetProvider = Boolean(resendApiKey || resetMailer);
+const sendResetEmail = async ({ to, resetUrl }) => {
+  const message = {
+    from: resetFrom,
+    to,
+    subject: 'Reset your CareSlot password',
+    text: `Use this link within 30 minutes to reset your CareSlot password: ${resetUrl}`,
+    html: `<p>We received a request to reset your CareSlot password.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>`,
+  };
+  if (resendApiKey) {
+    const result = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(message),
+    });
+    const details = await result.json().catch(() => ({}));
+    if (!result.ok) {
+      const error = new Error(details.message || details.name || `Resend returned HTTP ${result.status}.`);
+      error.status = result.status;
+      throw error;
+    }
+    console.info(`Password reset email accepted by Resend (id=${details.id || 'unknown'}).`);
+    return;
+  }
+  const info = await resetMailer.sendMail(message);
+  console.info(`Password reset email accepted by SMTP (id=${info.messageId}).`);
+};
 const resetUrlFor = (req, token, role) => {
   const origin = req.get('origin');
   const localOrigin = origin && /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(origin)
@@ -135,9 +163,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   const normalizedEmail = str(email).toLowerCase();
   if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || !['patient', 'doctor'].includes(role))
     return res.status(400).json({ error: 'Enter a valid email address and account type.' });
-  if (process.env.NODE_ENV === 'production' && (!resetMailer || !resetFrom || !process.env.APP_URL))
+  if (process.env.NODE_ENV === 'production' && (!hasResetProvider || !resetFrom || !process.env.APP_URL))
     return res.status(503).json({ error: 'Password recovery is not configured. Please contact support.' });
-  if (resetMailer && !resetFrom)
+  if (hasResetProvider && !resetFrom)
     return res.status(503).json({ error: 'Password recovery email sender is not configured.' });
 
   const user = collection(role).find((candidate) => candidate.email === normalizedEmail);
@@ -152,19 +180,13 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   save();
 
   const resetUrl = resetUrlFor(req, token, role);
-  if (resetMailer) {
+  if (hasResetProvider) {
     try {
-      await resetMailer.sendMail({
-        from: resetFrom,
-        to: user.email,
-        subject: 'Reset your CareSlot password',
-        text: `Use this link within 30 minutes to reset your CareSlot password: ${resetUrl}`,
-        html: `<p>We received a request to reset your CareSlot password.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>`,
-      });
+      await sendResetEmail({ to: user.email, resetUrl });
     } catch (error) {
       db.passwordResets = db.passwordResets.filter((reset) => reset.tokenHash !== tokenHash);
       save();
-      console.error('Password reset email delivery failed:', error);
+      console.error('Password reset email delivery failed:', error.status || '', error.message);
       return res.status(503).json({ error: 'We could not send the reset email. Please try again later.' });
     }
   } else if (process.env.NODE_ENV !== 'production') {
